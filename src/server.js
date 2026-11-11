@@ -6,10 +6,14 @@ require('dotenv').config();
 const express = require('express');
 //نجيبوا fonction connectDB تاع connexion a MongoDB depuis db.js
 const connectDB = require('./config/db');
+// نجيبو routes تاع auth من fichier authRoutes.js
+const authRoutes = require('./routes/authRoutes');
 //نصنعوا application
 const app = express();
 //ligne هذا يخلينا نقراو json المبعوث في req.body
 app.use(express.json());
+// كل routes تاع auth تبدا بـ /api/auth
+app.use('/api/auth', authRoutes);
 // nconnectiw base 
 connectDB();
 //لهنا نعملوا creation ل une route de test باش نتاكدوا انو serveur يخدم
