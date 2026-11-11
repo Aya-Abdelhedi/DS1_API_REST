@@ -13,5 +13,21 @@ router.post('/register', register);
 // نعبو la liste login 
 router.post('/login', login);
 
+// n importw  les middlewares باش proteger les routes
+const auth = require('../middlewares/auth');
+const authorize = require('../middlewares/authorize');
+
+//  route protégée par auth
+router.get('/me', auth, (req, res) => {
+    //هوني يرجع id ,role , stocké في req.user par auth
+  res.json({ user: req.user });
+});
+
+// protégée par auth puis authorize
+router.get('/manager-only', auth, authorize('manager'), (req, res) => {
+    // reponse هاذي تظهر كان اذا token valide et role est manager 
+  res.json({ message: 'Bienvenue manager' });
+});
+
 // n exportiw router باش نستعملوه في server.js
 module.exports = router;
