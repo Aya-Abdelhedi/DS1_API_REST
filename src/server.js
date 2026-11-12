@@ -8,12 +8,18 @@ const express = require('express');
 const connectDB = require('./config/db');
 // نجيبو routes تاع auth من fichier authRoutes.js
 const authRoutes = require('./routes/authRoutes');
+// نجيبو routes تاع projects من fichier projectRoutes.js
+const projectRoutes = require('./routes/projectRoutes');
 //نصنعوا application
 const app = express();
 //ligne هذا يخلينا نقراو json المبعوث في req.body
 app.use(express.json());
 // كل routes تاع auth تبدا بـ /api/auth
 app.use('/api/auth', authRoutes);
+
+// كل routes تاع projects تبدا بـ /api/projects
+app.use('/api/projects', projectRoutes);
+
 // nconnectiw base 
 connectDB();
 //لهنا نعملوا creation ل une route de test باش نتاكدوا انو serveur يخدم
