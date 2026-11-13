@@ -12,6 +12,8 @@ const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 // نجيبو routes تاع tasks
 const taskRoutes = require('./routes/taskRoutes');
+// نجيبو middlewares تاع les erreurs من errorHandler.js
+const { notFound, errorHandler } = require('./middlewares/errorHandler');
 //نصنعوا application
 const app = express();
 //ligne هذا يخلينا نقراو json المبعوث في req.body
@@ -31,6 +33,12 @@ connectDB();
 app.get('/', (req, res) => {
   res.json({ message: 'API DS1 ' });
 });
+
+//كان ما فما حتى route لل requete نرجعو erreur 404
+app.use(notFound);
+// erreurs generales  نرجعوها ب format json
+app.use(errorHandler);
+
 //ناخذوا port du env. و 3000نستعملوها كان اذا port موش موجود||
 const PORT = process.env.PORT || 3000;
 //هوني ndemariw serveur 
