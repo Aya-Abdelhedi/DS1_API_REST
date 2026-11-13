@@ -10,6 +10,8 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 // نجيبو routes تاع projects من fichier projectRoutes.js
 const projectRoutes = require('./routes/projectRoutes');
+// نجيبو routes تاع tasks
+const taskRoutes = require('./routes/taskRoutes');
 //نصنعوا application
 const app = express();
 //ligne هذا يخلينا نقراو json المبعوث في req.body
@@ -19,6 +21,9 @@ app.use('/api/auth', authRoutes);
 
 // كل routes تاع projects تبدا بـ /api/projects
 app.use('/api/projects', projectRoutes);
+
+// routes تاع tasks (فيها /projects/:id/tasks و /tasks/:id)
+app.use('/api', taskRoutes);
 
 // nconnectiw base 
 connectDB();
