@@ -13,6 +13,7 @@ router.post('/register', register);
 // نعبو la liste login 
 router.post('/login', login);
 
+
 // n importw  les middlewares باش proteger les routes
 const auth = require('../middlewares/auth');
 const authorize = require('../middlewares/authorize');
