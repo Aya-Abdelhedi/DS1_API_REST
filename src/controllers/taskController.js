@@ -1,4 +1,4 @@
-// fichier فيها les fonctions الي يخلونا نعملوا les opérations CRUD على tâche و نعملوا affectation متاع tâche لـ user (كان الي عندو role manager ينجم يعمل affectation)
+// fichier فيها les fonctions الي يخلونا نعملوا les opérations CRUD على tâche , recherche و tri, و نعملوا affectation متاع tâche لـ user (كان الي عندو role manager ينجم يعمل affectation)
 
 // n importiw bib mongoose, modele task, modele projet, modele user
 const mongoose = require('mongoose');
@@ -11,6 +11,9 @@ const canAccess = (project, user) => {
   // كان user هو manager ولا هو صاحب projet، نعطيوه accès
   return user.role === 'manager' || project.owner.toString() === user.id;
 };
+
+// fonction تبدل (. * + ...) و تحسبهم كحروف عادية في recherche
+const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // CREATE : créer une tâche وسط projet
 exports.createTask = async (req, res) => {
@@ -63,9 +66,28 @@ exports.getTasksByProject = async (req, res) => {
     if (!canAccess(project, req.user)) {
       return res.status(403).json({ message: 'Accès interdit à ce projet' });
     }
-    // نلوجو على  les tâches الي project متاعهم هو  projet هذا
-    const tasks = await Task.find({ project: project._id });
-    // يرجع liste ب format json
+    // نقراو les paramètres من l'URL
+    const { search, statut, sort, order } = req.query;
+
+    // نخليو كان tâches تاع projet هذا
+    const filter = { project: project._id };
+    // اذا user يلوج على كلمة نخلوا كان les taches الي titre متاعو فيه الكلمة هذه
+    if (search) {
+    filter.titre = { $regex: escapeRegex(search), $options: 'i' };
+    }
+        // كان user اختار statut نخلو كان tache الي عند statut هذا
+    if (statut) {
+    filter.statut = statut;
+    }
+
+    // هذه liste الحاجات المسموحين لل trie meme principe que projet 
+    const allowedSort = ['createdAt', 'titre', 'deadline', 'statut'];
+    const sortField = allowedSort.includes(sort) ? sort : 'createdAt';
+    const sortOrder = order === 'desc' ? -1 : 1;
+
+    const tasks = await Task.find(filter).sort({ [sortField]: sortOrder });
+    
+    // يرجع liste  لل client au format json
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: error.message });
