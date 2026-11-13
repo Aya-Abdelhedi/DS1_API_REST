@@ -1,4 +1,4 @@
-// fichier فيها les fonctions الي يخلونا نعملوا les opérartions CRUD على projet و نثبتو من droit d'acces 
+// fichier فيها les fonctions الي يخلونا نعملوا les opérations CRUD على projet, recherche و tri, و نثبتو من droit d'accès
 
 // n importiw bib mongoose, modele projet ,modele task
 const mongoose = require('mongoose');
@@ -10,6 +10,9 @@ const canAccess = (project, user) => {
 //كان user هو manager ولا هو صاحب projet، نعطيوه accès
   return user.role === 'manager' || project.owner.toString() === user.id;
 };
+
+// fonction تبدل (. * + ...) و تحسبهم كحروف عادية في recherche
+const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // CREATE: créer un projet 
 exports.createProject = async (req, res) => {
@@ -32,13 +35,33 @@ exports.createProject = async (req, res) => {
 };
 
 
-// READ : afficher tous les projects : يعني user يشوف les projets متاعو  ,manager يشوف الكل 
+// READ : afficher les projets مع recherche, filtre par statut و tri
 exports.getProjects = async (req, res) => {
   try {
-    //  لل manager نعملوا filtre فارغ يعني فماش condition يعطينا les projets الكل و owner نعملوا filtre avec user 
+    // نجيبو les paramètres من l'URL 
+    const { search, statut, sort, order } = req.query;
+
     const filter = req.user.role === 'manager' ? {} : { owner: req.user.id };
-    const projects = await Project.find(filter);
-    // يرجع liste ب format json 
+
+    //وقت user يلوج على كلمة نخلو كان projet الى فيه الكلمة هاذي 
+    if (search) {
+      filter.nom = { $regex: escapeRegex(search), $options: 'i' };
+    }
+    // كان user اختار statut نخلو كان projet الي عند statut هذا
+    if (statut) {
+      filter.statut = statut;
+    }
+
+    // هذه liste الحاجات المسموحين لل trie 
+    const allowedSort = ['createdAt', 'nom', 'statut'];
+    //كان champs هذا autorisé و الا نستعملو date de creation في trie
+    const sortField = allowedSort.includes(sort) ? sort : 'createdAt';
+    // desc = من الكبير للصغير، sinon asc
+    const sortOrder = order === 'desc' ? -1 : 1;
+
+    // نلوجو في base مع les conditions وبعد نعملو trie
+    const projects = await Project.find(filter).sort({ [sortField]: sortOrder });
+    // يرجع liste  لل client au format json
     res.json(projects);
   } catch (error) {
     res.status(500).json({ message: error.message });
